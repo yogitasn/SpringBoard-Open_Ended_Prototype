@@ -4,10 +4,10 @@ import re
 
 # udf to remove ' and , in the column value
 # regex_replace
-commaRep = udf(lambda x: re.sub('[\'\s,]','', x))
+#commaRep = udf(lambda x: re.sub('[\'\s,]','', x))
 
 # udf to remove '(' and ')' in the column value
-braceRepl = udf(lambda x: re.sub('\(|\)','', x))
+#braceRepl = udf(lambda x: re.sub('\(|\)','', x))
 
 
 def format_minstoHHMMSS(x):

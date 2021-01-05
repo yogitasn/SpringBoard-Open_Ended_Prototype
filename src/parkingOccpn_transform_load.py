@@ -5,7 +5,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType,StructField, StringType, IntegerType ,LongType,DecimalType
 from pyspark.sql.types import ArrayType, DoubleType, BooleanType
 from pyspark.sql import functions as F
-from pyspark.sql.functions import col,array_contains,date_format
+from pyspark.sql.functions import col,array_contains,date_format,regexp_replace
 import logging
 import configparser
 from pathlib import Path
@@ -62,7 +62,9 @@ class ParkingOccupancyLoadTransform:
                     .load(self._load_path+"2020_Paid_Parking.csv")
 
         
-        occ_df=occ_df.withColumn('Station_Id',parkingOccpn_udf.commaRep('Station_Id'))
+        #occ_df=occ_df.withColumn('Station_Id',parkingOccpn_udf.commaRep('Station_Id'))
+
+        occ_df=occ_df.withColumn('Station_Id',regexp_replace(col('Station_Id'),'[\'\s,]',''))
 
         occ_df = occ_df.withColumn("Station_Id",\
                         occ_df["Station_Id"].cast(IntegerType()))
@@ -84,12 +86,16 @@ class ParkingOccupancyLoadTransform:
         occ_df=occ_df.withColumn('Longitude',F.split('Location',' ').getItem(1)) \
                      .withColumn('Latitude',F.split('Location',' ').getItem(2))
         
-        occ_df=occ_df.withColumn('Latitude',parkingOccpn_udf.braceRepl('Latitude')) \
-                     .withColumn('Longitude',parkingOccpn_udf.braceRepl('Longitude'))
+      #  occ_df=occ_df.withColumn('Latitude',parkingOccpn_udf.braceRepl('Latitude')) \
+       #              .withColumn('Longitude',parkingOccpn_udf.braceRepl('Longitude'))
 
-        
+        occ_df=occ_df.withColumn('Latitude',regexp_replace(col('Latitude'), "\(|\)", "")) \
+                     .withColumn('Longitude',regexp_replace(col('Longitude'), "\(|\)", ""))
+
         occ_df = occ_df.withColumn("Latitude",occ_df["Latitude"].cast(DoubleType())) \
                        .withColumn("Longitude",occ_df["Longitude"].cast(DoubleType()))
+
+        
         
     
         occ_df=occ_df.drop('Location')
